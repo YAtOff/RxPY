@@ -25,7 +25,6 @@ created = ReactiveTest.created
 
 class TestToFuture(unittest.TestCase):
     def test_await_success(self):
-        loop = asyncio.get_event_loop()
         result = None
 
         async def go():
@@ -33,10 +32,9 @@ class TestToFuture(unittest.TestCase):
             source = Observable.return_value(42)
             result = await source
 
-        loop.run_until_complete(go())
+        asyncio.run(go())
         assert(result == 42)
     def test_await_error(self):
-        loop = asyncio.get_event_loop()
         error = Exception("error")
         result = None
 
@@ -48,5 +46,5 @@ class TestToFuture(unittest.TestCase):
             except Exception as ex:
                 result = ex
 
-        loop.run_until_complete(go())
+        asyncio.run(go())
         assert(result == error)

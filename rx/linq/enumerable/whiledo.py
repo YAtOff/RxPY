@@ -9,4 +9,3 @@ def while_do(cls, condition, source):
 
         raise StopIteration()
     return Enumerable(next())
-

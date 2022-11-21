@@ -8,15 +8,15 @@ if asyncio is None:
 Future = rx.config['Future']
 
 from rx import Observable
+from asyncio import Future
 
-class TestFromFuture(unittest.TestCase):
+class TestFromFuture(unittest.IsolatedAsyncioTestCase):
 
-    def test_future_success(self):
-        loop = asyncio.get_event_loop()
+    async def test_future_success(self):
+        completed = asyncio.Event()
         success = [False, True, False]
 
-        @asyncio.coroutine
-        def go():
+        async def go():
             future = Future()
             future.set_result(42)
 
@@ -27,21 +27,24 @@ class TestFromFuture(unittest.TestCase):
 
             def on_error(err):
                 success[1] = False
+                completed.set()
 
             def on_completed():
                 success[2] = True
+                completed.set()
+
 
             subscription = source.subscribe(on_next, on_error, on_completed)
 
-        loop.run_until_complete(go())
+        await go()
+        await completed.wait()
         assert(all(success))
 
-    def test_future_failure(self):
-        loop = asyncio.get_event_loop()
+    async def test_future_failure(self):
+        completed = asyncio.Event()
         success = [True, False, True]
 
-        @asyncio.coroutine
-        def go():
+        async def go():
             error = Exception('woops')
 
             future = Future()
@@ -54,21 +57,22 @@ class TestFromFuture(unittest.TestCase):
 
             def on_error(err):
                 success[1] = str(err) == str(error)
+                completed.set()
 
             def on_completed():
                 success[2] = False
+                completed.set()
 
             subscription = source.subscribe(on_next, on_error, on_completed)
 
-        loop.run_until_complete(go())
+        await go()
+        await completed.wait()
         assert(all(success))
 
-    def test_future_dispose(self):
-        loop = asyncio.get_event_loop()
+    async def test_future_dispose(self):
         success = [True, True, True]
 
-        @asyncio.coroutine
-        def go():
+        async def go():
             future = Future()
             future.set_result(42)
 
@@ -86,5 +90,5 @@ class TestFromFuture(unittest.TestCase):
             subscription = source.subscribe(on_next, on_error, on_completed)
             subscription.dispose()
 
-        loop.run_until_complete(go())
+        await go()
         assert(all(success))

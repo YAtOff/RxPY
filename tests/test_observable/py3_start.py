@@ -15,14 +15,13 @@ disposed = ReactiveTest.disposed
 created = ReactiveTest.created
 
 
-class TestStart(unittest.TestCase):
+class TestStart(unittest.IsolatedAsyncioTestCase):
 
-    def test_start_async(self):
-        loop = asyncio.get_event_loop()
+    async def test_start_async(self):
+        completed = asyncio.Event()
         success = [False]
 
-        @asyncio.coroutine
-        def go():
+        async def go():
             def func():
                 future = Future()
                 future.set_result(42)
@@ -32,17 +31,18 @@ class TestStart(unittest.TestCase):
 
             def on_next(x):
                 success[0] = (42 == x)
+                completed.set()
             source.subscribe(on_next)
 
-        loop.run_until_complete(go())
+        await go()
+        await completed.wait()
         assert(all(success))
 
-    def test_start_async_error(self):
-        loop = asyncio.get_event_loop()
+    async def test_start_async_error(self):
+        completed = asyncio.Event()
         success = [False]
 
-        @asyncio.coroutine
-        def go():
+        async def go():
             def func():
                 future = Future()
                 future.set_exception(Exception(str(42)))
@@ -52,9 +52,11 @@ class TestStart(unittest.TestCase):
 
             def on_error(ex):
                 success[0] = (str(42) == str(ex))
+                completed.set()
             source.subscribe(on_error=on_error)
 
-        loop.run_until_complete(go())
+        await go()
+        await completed.wait()
         assert(all(success))
 
     def test_start_action2(self):

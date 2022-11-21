@@ -17,9 +17,7 @@ class NewThreadScheduler(SchedulerBase):
         super(NewThreadScheduler, self).__init__()
 
         def default_factory(target, args=None):
-            t = threading.Thread(target=target, args=args or [])
-            t.setDaemon(True)
-            return t
+            return threading.Thread(target=target, args=args or [], daemon=True)
 
         self.thread_factory = thread_factory or default_factory
 

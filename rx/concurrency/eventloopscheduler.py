@@ -22,9 +22,7 @@ class EventLoopScheduler(SchedulerBase, Disposable):
         self.is_disposed = False
 
         def default_factory(target):
-            t = threading.Thread(target=target)
-            t.setDaemon(True)
-            return t
+            return threading.Thread(target=target, daemon=True)
 
         self.lock = config["concurrency"].RLock()
         self.thread_factory = thread_factory or default_factory
@@ -137,7 +135,7 @@ class EventLoopScheduler(SchedulerBase, Disposable):
                         log.debug("timeout: %s", seconds)
 
                         self.timer = Timer(seconds, self.tick, args=(_next,))
-                        self.timer.setDaemon(True)
+                        self.timer.daemon = True
                         self.timer.start()
 
                 if len(self.ready_list):

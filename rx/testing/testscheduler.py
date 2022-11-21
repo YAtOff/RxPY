@@ -16,6 +16,8 @@ class TestScheduler(VirtualTimeScheduler):
     built using Reactive Extensions. All time, both absolute and relative is
     specified as integer ticks"""
 
+    __test__ = False
+
     def __init__(self):
         """Initializes a new instance of the TestScheduler class."""
 
